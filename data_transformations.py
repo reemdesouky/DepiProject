@@ -1,3 +1,6 @@
+from sqlalchemy import Date
+
+
 class DataTransformer:
     def __init__(self):
         from sklearn.preprocessing import LabelEncoder
@@ -16,28 +19,28 @@ class DataTransformer:
         data = data.copy()
 
         # Clean
-        # data.drop(columns=["Unnamed: 0"], inplace=True, errors="ignore")
+        data.drop(columns=["Unnamed: 0"], inplace=True, errors="ignore")
 
         # Date
-        # data["date"] = pd.to_datetime(data["date"])
-        # data["day"] = data["date"].dt.dayofyear
+        data["date"] = pd.to_datetime(data["date"])
+        data["day"] = data["date"].dt.dayofyear
 
-        # data = data.sort_values(["item_id", "store_id", "date"])
+        data = data.sort_values(["item_id", "store_id", "date"])
 
-        # # Time feature
-        # data["week"] = data["date"].dt.isocalendar().week.astype(int)
+        # Time feature
+        data["week"] = data["date"].dt.isocalendar().week.astype(int)
 
         # ======================
         # ITEM FEATURES
         # ======================
-        # grp = data.groupby(["item_id", "store_id"])["sales"]
+        grp = data.groupby(["item_id", "store_id"])["sales"]
 
-        # data["lag_1"] = grp.shift(1)
-        # data["lag_7"] = grp.shift(7)
-        # data["lag_28"] = grp.shift(28)
+        data["lag_1"] = grp.shift(1)
+        data["lag_7"] = grp.shift(7)
+        data["lag_28"] = grp.shift(28)
 
-        # data["rolling_mean_7"] = grp.shift(1).rolling(7).mean()
-        # data["rolling_mean_28"] = grp.shift(1).rolling(28).mean()
+        data["rolling_mean_7"] = grp.shift(1).rolling(7).mean()
+        data["rolling_mean_28"] = grp.shift(1).rolling(28).mean()
 
         # ======================
         # STORE FEATURES
