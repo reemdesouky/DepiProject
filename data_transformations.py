@@ -16,40 +16,42 @@ class DataTransformer:
         data = data.copy()
 
         # Clean
-        data.drop(columns=["Unnamed: 0"], inplace=True, errors="ignore")
+        # data.drop(columns=["Unnamed: 0"], inplace=True, errors="ignore")
 
         # Date
-        data["date"] = pd.to_datetime(data["date"])
-        data["day"] = data["date"].dt.dayofyear
+        # data["date"] = pd.to_datetime(data["date"])
+        # data["day"] = data["date"].dt.dayofyear
 
-        data = data.sort_values(["item_id", "store_id", "date"])
+        # data = data.sort_values(["item_id", "store_id", "date"])
 
-        # Time feature
-        data["week"] = data["date"].dt.isocalendar().week.astype(int)
+        # # Time feature
+        # data["week"] = data["date"].dt.isocalendar().week.astype(int)
 
         # ======================
         # ITEM FEATURES
         # ======================
-        grp = data.groupby(["item_id", "store_id"])["sales"]
+        # grp = data.groupby(["item_id", "store_id"])["sales"]
 
-        data["lag_1"] = grp.shift(1)
-        data["lag_7"] = grp.shift(7)
-        data["lag_28"] = grp.shift(28)
+        # data["lag_1"] = grp.shift(1)
+        # data["lag_7"] = grp.shift(7)
+        # data["lag_28"] = grp.shift(28)
 
-        data["rolling_mean_7"] = grp.shift(1).rolling(7).mean()
-        data["rolling_mean_28"] = grp.shift(1).rolling(28).mean()
+        # data["rolling_mean_7"] = grp.shift(1).rolling(7).mean()
+        # data["rolling_mean_28"] = grp.shift(1).rolling(28).mean()
 
         # ======================
         # STORE FEATURES
         # ======================
+
+
         store_daily = (
-            data.groupby(['store_id', 'day'])["sales"]
+            data.groupby(['store_id', 'day'], observed=False)["sales"]
             .sum()
             .reset_index()
             .sort_values(['store_id','day'])
         )
 
-        store_grp = store_daily.groupby('store_id')["sales"]
+        store_grp = store_daily.groupby('store_id', observed=False)["sales"]
 
         store_daily['store_lag_7'] = store_grp.shift(7)
         store_daily['store_lag_28'] = store_grp.shift(28)
@@ -57,7 +59,13 @@ class DataTransformer:
         store_daily["store_rolling_mean_7"] = store_grp.shift(1).rolling(7).mean()
         store_daily["store_rolling_mean_28"] = store_grp.shift(1).rolling(28).mean()
 
-        store_daily.fillna(0, inplace=True)
+        # ✅ Fill only numeric
+        num_cols = store_daily.select_dtypes(include=['number']).columns
+        store_daily[num_cols] = store_daily[num_cols].fillna(0)
+
+
+
+
 
         data = data.merge(
             store_daily[['store_id','day','store_lag_7','store_lag_28',
@@ -70,18 +78,20 @@ class DataTransformer:
         # STATE FEATURES
         # ======================
         state = (
-            data.groupby(['state_id', 'day'])["sales"]
+            data.groupby(['state_id', 'day'], observed=False)["sales"]
             .sum()
             .reset_index()
             .sort_values(['state_id','day'])
         )
 
-        state_grp = state.groupby('state_id')["sales"]
+        state_grp = state.groupby('state_id', observed=False)["sales"]
 
         state['state_lag_28'] = state_grp.shift(28)
         state["state_rolling_mean_28"] = state_grp.shift(1).rolling(28).mean()
 
-        state.fillna(0, inplace=True)
+        # ✅ SAFE FILL
+        num_cols = state.select_dtypes(include=['number']).columns
+        state[num_cols] = state[num_cols].fillna(0)
 
         data = data.merge(
             state[['state_id','day','state_lag_28','state_rolling_mean_28']],
@@ -104,7 +114,7 @@ class DataTransformer:
         for col in self.cat_cols:
             data[col] = data[col].astype("category")
 
-        data = data.drop(columns=["date"])
+        # data = data.drop(columns=["date"])
 
         return data
 
