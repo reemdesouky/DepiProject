@@ -16,7 +16,7 @@
     </div>
     <div>
       <div class="nav-title">Stockwise</div>
-      <div class="nav-sub">Inventory Forecasting</div>
+      <div class="nav-sub" id="nav-store-name">Loading...</div>
     </div>
   </div>
   <div class="nav-search">
@@ -24,136 +24,256 @@
     <input type="text" placeholder="Search SKUs, warehouses, suppliers...">
   </div>
   <div class="nav-actions">
-    <button class="btn-ghost-nav"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+    <button class="btn-ghost-nav" onclick="goBack()">← Stores</button>
     <button class="btn-ghost-nav"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export</button>
-    <button class="btn-primary-nav"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Run Forecast</button>
+    <button class="btn-primary-nav" onclick="loadAll()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Refresh</button>
   </div>
 </nav>
 
 <div class="dash-content">
   <div class="dash-header">
     <div>
-      <h1 class="dash-title">Demand Forecast Overview</h1>
-      <p class="dash-desc">ML-powered predictions across 1,284 SKUs · Updated 2 minutes ago</p>
+      <h1 class="dash-title" id="dash-title">Demand Forecast Overview</h1>
+      <p class="dash-desc" id="dash-desc">Loading data...</p>
     </div>
     <div class="time-filters">
-      <button class="tf">7d</button>
-      <button class="tf">30d</button>
-      <button class="tf active">90d</button>
-      <button class="tf">1y</button>
-    </div>
-  </div>
-  <div class="metrics">
-    <div class="metric-card">
-      <div class="metric-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
-      <div class="metric-label">Forecast Accuracy</div>
-      <div class="metric-row"><span class="metric-value">94.2%</span><span class="badge-up">↗ +2.1%</span></div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
-      <div class="metric-label">Projected Demand</div>
-      <div class="metric-row"><span class="metric-value">12,840</span><span class="badge-up">↗ +8.4%</span></div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-icon amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-      <div class="metric-label">Stockout Risk SKUs</div>
-      <div class="metric-row"><span class="metric-value">27</span><span class="badge-down">↘ -12%</span></div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-      <div class="metric-label">Inventory Value</div>
-      <div class="metric-row"><span class="metric-value">$1.84M</span><span class="badge-up">↗ +3.2%</span></div>
+      <button class="tf" onclick="setпериод('7d',this)">7d</button>
+      <button class="tf" onclick="setпериод('30d',this)">30d</button>
+      <button class="tf active" onclick="setпериод('90d',this)">90d</button>
+      <button class="tf" onclick="setпериод('1y',this)">1y</button>
     </div>
   </div>
 
+  <!-- Metrics -->
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <div class="metric-label">Total Units Sold</div>
+      <div class="metric-row"><span class="metric-value" id="m-units">—</span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="metric-label">Total Revenue</div>
+      <div class="metric-row"><span class="metric-value" id="m-revenue">—</span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+      <div class="metric-label">Num Stores</div>
+      <div class="metric-row"><span class="metric-value" id="m-stores">—</span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+      <div class="metric-label">Avg Price</div>
+      <div class="metric-row"><span class="metric-value" id="m-price">—</span></div>
+    </div>
+  </div>
+
+  <!-- Chart + Top Products -->
   <div class="main-grid">
     <div class="panel">
       <div class="panel-header">
         <div>
-          <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Demand forecast vs actual</div>
-          <div class="panel-sub">Confidence interval shaded · 9 month horizon</div>
+          <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Sales trend</div>
+          <div class="panel-sub" id="chart-sub">Loading...</div>
         </div>
         <div class="legend">
           <span><i class="dot" style="background:#1d4ed8"></i>Actual</span>
-          <span><i class="dot" style="background:#93c5fd"></i>Forecast</span>
         </div>
       </div>
       <div style="position:relative;height:230px">
-        <canvas id="demandChart" role="img" aria-label="Demand forecast chart Jan to Sep"></canvas>
+        <canvas id="demandChart"></canvas>
       </div>
     </div>
+
     <div class="panel">
       <div class="panel-header">
         <div>
-          <div class="panel-title alert-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Restock alerts</div>
-          <div class="panel-sub">Action needed within 14 days</div>
+          <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Top Products</div>
+          <div class="panel-sub">Top 5 by units sold (last 30d)</div>
         </div>
       </div>
-      <div class="alerts-list">
-        <div class="alert-item">
-          <div class="alert-top"><div><div class="alert-name">Wireless Headphones</div><div class="alert-sku">WH-1042 · 12 days cover</div></div><span class="badge-critical">critical</span></div>
-          <div class="prog-bar"><div class="prog-fill" style="width:68%"></div></div>
-          <div class="prog-labels"><span>1,240 in stock</span><span>1,820 forecast</span></div>
-        </div>
-        <div class="alert-item">
-          <div class="alert-top"><div><div class="alert-name">Mechanical Keyboard</div><div class="alert-sku">KB-2200 · 21 days cover</div></div><span class="badge-warning">warning</span></div>
-          <div class="prog-bar"><div class="prog-fill" style="width:91%"></div></div>
-          <div class="prog-labels"><span>860 in stock</span><span>940 forecast</span></div>
-        </div>
-        <div class="alert-item">
-          <div class="alert-top"><div><div class="alert-name">Standing Desk</div><div class="alert-sku">DK-7701 · 7 days cover</div></div><span class="badge-critical">critical</span></div>
-          <div class="prog-bar"><div class="prog-fill" style="width:38%"></div></div>
-          <div class="prog-labels"><span>92 in stock</span><span>240 forecast</span></div>
-        </div>
-        <div class="alert-item">
-          <div class="alert-top"><div><div class="alert-name">Office Chair</div><div class="alert-sku">CH-5520 · 18 days cover</div></div><span class="badge-warning">warning</span></div>
-          <div class="prog-bar"><div class="prog-fill" style="width:86%"></div></div>
-          <div class="prog-labels"><span>180 in stock</span><span>210 forecast</span></div>
-        </div>
+      <div class="alerts-list" id="top-products-list">
+        <div style="color:#aaa;font-size:13px">Loading...</div>
       </div>
-      <button class="btn-view-all">View all alerts</button>
     </div>
   </div>
 
+  <!-- Table -->
   <div class="table-panel">
     <div class="table-header">
       <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> SKU forecast breakdown</div>
       <a href="#" class="view-all-link">View all →</a>
     </div>
-    <div class="table-sub">Top items ranked by reorder priority</div>
+    <div class="table-sub">Top items ranked by units sold</div>
     <table>
-      <thead><tr><th>SKU</th><th>Product</th><th class="right">In stock</th><th class="right">30d forecast</th><th class="right">Days cover</th><th class="right">Status</th></tr></thead>
-      <tbody>
-        <tr><td class="sku-code">WH-1042</td><td class="prod-name">Wireless Headphones</td><td class="right">1,240</td><td class="right">1,820</td><td class="right">12d</td><td class="right"><span class="badge-critical">critical</span></td></tr>
-        <tr><td class="sku-code">KB-2200</td><td class="prod-name">Mechanical Keyboard</td><td class="right">860</td><td class="right">940</td><td class="right">21d</td><td class="right"><span class="badge-warning">warning</span></td></tr>
-        <tr><td class="sku-code">MN-3308</td><td class="prod-name">27" 4K Monitor</td><td class="right">420</td><td class="right">380</td><td class="right">38d</td><td class="right"><span class="badge-healthy">healthy</span></td></tr>
-        <tr><td class="sku-code">MS-1190</td><td class="prod-name">Ergonomic Mouse</td><td class="right">2,310</td><td class="right">2,100</td><td class="right">45d</td><td class="right"><span class="badge-healthy">healthy</span></td></tr>
-        <tr><td class="sku-code">DK-7701</td><td class="prod-name">Standing Desk</td><td class="right">92</td><td class="right">240</td><td class="right">7d</td><td class="right"><span class="badge-critical">critical</span></td></tr>
-        <tr><td class="sku-code">CH-5520</td><td class="prod-name">Office Chair</td><td class="right">180</td><td class="right">210</td><td class="right">18d</td><td class="right"><span class="badge-warning">warning</span></td></tr>
+      <thead>
+        <tr>
+          <th>Item ID</th>
+          <th>Product</th>
+          <th class="right">Units Sold (30d)</th>
+        </tr>
+      </thead>
+      <tbody id="sku-table-body">
+        <tr><td colspan="3" style="color:#aaa;text-align:center;padding:20px">Loading...</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
 <script>
-new Chart(document.getElementById('demandChart'),{
-  type:'line',
-  data:{
-    labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'],
-    datasets:[
-      {label:'Actual',data:[4100,4300,4200,4500,4600,4800,null,null,null],borderColor:'#1d4ed8',borderWidth:2,pointRadius:3,pointBackgroundColor:'#1d4ed8',tension:0.4,spanGaps:false},
-      {label:'Forecast',data:[null,null,null,null,4600,5000,5800,6800,8000],borderColor:'#93c5fd',borderWidth:2,borderDash:[5,4],pointRadius:3,pointBackgroundColor:'#93c5fd',tension:0.4,fill:true,backgroundColor:'rgba(147,197,253,0.12)',spanGaps:false}
-    ]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{
-      x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11}}},
-      y:{min:0,max:9000,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11},stepSize:2000}}
-    }
+const API    = 'http://localhost:5000/api';
+const params = new URLSearchParams(location.search);
+const store  = params.get('store') || '';
+const names  = { x: 'Store X — California', y: 'Store Y — Texas', z: 'Store Z — Wisconsin' };
+
+let currentPeriod = '90d';
+let demandChart   = null;
+
+// عرض اسم الـ store
+if (store && names[store]) {
+  document.getElementById('nav-store-name').textContent = names[store];
+  document.getElementById('dash-title').textContent     = `${names[store]} — Forecast Overview`;
+} else {
+  window.location.href = '../index.html';
+}
+
+function goBack() {
+  window.location.href = '../index.html';
+}
+
+function setпериод(period, btn) {
+  document.querySelectorAll('.tf').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPeriod = period;
+  loadTrend();
+}
+
+// ── Summary ──
+async function loadSummary() {
+  try {
+    const res  = await fetch(`${API}/dashboard/summary?store=${store}`, { credentials: 'include' });
+    const data = await res.json();
+
+    document.getElementById('m-units').textContent   = data.total_units_sold?.toLocaleString() ?? '—';
+    document.getElementById('m-revenue').textContent = data.total_revenue ? '$' + data.total_revenue.toLocaleString() : '—';
+    document.getElementById('m-stores').textContent  = data.num_stores ?? '—';
+    document.getElementById('m-price').textContent   = data.avg_price ? '$' + data.avg_price.toFixed(2) : '—';
+    document.getElementById('dash-desc').textContent = `${data.num_products?.toLocaleString() ?? '—'} products · Updated just now`;
+  } catch (e) {
+    document.getElementById('dash-desc').textContent = 'Failed to load summary.';
   }
-});
+}
+
+// ── Trend Chart ──
+async function loadTrend() {
+  document.getElementById('chart-sub').textContent = 'Loading...';
+  try {
+    const res    = await fetch(`${API}/dashboard/trend?period=${currentPeriod}&store=${store}`, { credentials: 'include' });
+    const data   = await res.json();
+    const labels = data.map(d => d.date);
+    const values = data.map(d => d.actual);
+
+    document.getElementById('chart-sub').textContent = `${data.length} days of sales data`;
+
+    if (demandChart) demandChart.destroy();
+    demandChart = new Chart(document.getElementById('demandChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label:            'Actual',
+          data:             values,
+          borderColor:      '#1d4ed8',
+          borderWidth:      2,
+          pointRadius:      data.length > 90 ? 0 : 3,
+          pointBackgroundColor: '#1d4ed8',
+          tension:          0.4,
+          fill:             true,
+          backgroundColor:  'rgba(37,99,235,0.07)',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, maxTicksLimit: 10 } },
+          y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  } catch (e) {
+    document.getElementById('chart-sub').textContent = 'Failed to load chart.';
+  }
+}
+
+// ── Top Products ──
+async function loadTopProducts() {
+  try {
+    const res  = await fetch(`${API}/dashboard/top-products?limit=5&store=${store}`, { credentials: 'include' });
+    const data = await res.json();
+    const max  = data[0]?.total_sold || 1;
+
+    const html = data.map(p => `
+      <div class="alert-item">
+        <div class="alert-top">
+          <div>
+            <div class="alert-name">${p.product_name || p.item_id}</div>
+            <div class="alert-sku">${p.item_id}</div>
+          </div>
+          <span class="badge-healthy">${p.total_sold?.toLocaleString()} units</span>
+        </div>
+        <div class="prog-bar">
+          <div class="prog-fill" style="width:${Math.round((p.total_sold / max) * 100)}%"></div>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('top-products-list').innerHTML = html || '<div style="color:#aaa;font-size:13px">No data</div>';
+  } catch (e) {
+    document.getElementById('top-products-list').innerHTML = '<div style="color:#dc2626;font-size:13px">Failed to load.</div>';
+  }
+}
+
+// ── SKU Table ──
+async function loadSkuTable() {
+  try {
+    const res  = await fetch(`${API}/dashboard/top-products?limit=10&store=${store}`, { credentials: 'include' });
+    const data = await res.json();
+
+    const rows = data.map(p => `
+      <tr>
+        <td class="sku-code">${p.item_id}</td>
+        <td class="prod-name">${p.product_name || '—'}</td>
+        <td class="right">${p.total_sold?.toLocaleString()}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('sku-table-body').innerHTML = rows || '<tr><td colspan="3" style="color:#aaa;text-align:center">No data</td></tr>';
+  } catch (e) {
+    document.getElementById('sku-table-body').innerHTML = '<tr><td colspan="3" style="color:#dc2626;text-align:center">Failed to load.</td></tr>';
+  }
+}
+
+async function loadAll() {
+  await Promise.all([loadSummary(), loadTrend(), loadTopProducts(), loadSkuTable()]);
+}
+
+// تحقق من الـ session أولاً
+async function init() {
+  try {
+    const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
+    if (!res.ok) {
+      window.location.href = `login.html?store=${store}`;
+      return;
+    }
+    loadAll();
+  } catch {
+    window.location.href = `login.html?store=${store}`;
+  }
+}
+
+init();
 </script>
 </body>
 </html>
