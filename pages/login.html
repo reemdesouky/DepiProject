@@ -11,37 +11,98 @@
   <a href="../index.html" class="back-link">← Back to stores</a>
   <div class="login-card">
     <div class="login-store-header">
-      <div class="store-icon-sm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <div class="store-icon-sm">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
       <div>
         <div class="signing-in-label">Signing in to</div>
-        <div class="signing-in-store" id="storeName">Store X</div>
+        <div class="signing-in-store" id="storeName">Store</div>
       </div>
     </div>
     <div class="login-divider"></div>
     <h2 class="login-title">Sign in</h2>
     <p class="login-sub">Enter your credentials to continue.</p>
+
+    <div id="error-msg" style="display:none;color:#dc2626;font-size:13px;margin-bottom:12px;padding:8px 12px;background:#fef2f2;border-radius:8px;border:0.5px solid #fecaca"></div>
+
     <div class="form-group">
       <label class="form-label">Username</label>
       <div class="input-wrap">
         <span class="input-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
-        <input type="text" class="form-input" placeholder="your.username">
+        <input type="text" id="username" class="form-input" placeholder="your.username" autocomplete="username">
       </div>
     </div>
     <div class="form-group">
       <label class="form-label">Password</label>
       <div class="input-wrap">
         <span class="input-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-        <input type="password" class="form-input" value="••••••••">
+        <input type="password" id="password" class="form-input" placeholder="••••••••" autocomplete="current-password">
       </div>
     </div>
-    <a href="dashboard.html" class="btn-signin">Sign in &amp; view forecast</a>
+
+    <button class="btn-signin" id="signin-btn" onclick="doLogin()">Sign in &amp; view forecast</button>
   </div>
 </div>
+
 <script>
-  const params = new URLSearchParams(location.search);
-  const store = params.get('store');
-  const names = {x:'Store X',y:'Store Y',z:'Store Z'};
-  if(store && names[store]) document.getElementById('storeName').textContent = names[store];
+const API = 'http://localhost:5000/api';
+const params = new URLSearchParams(location.search);
+const store  = params.get('store') || '';
+const names  = { x: 'Store X', y: 'Store Y', z: 'Store Z' };
+
+// عرض اسم الـ store
+if (store && names[store]) {
+  document.getElementById('storeName').textContent = names[store];
+} else {
+  // لو مفيش store في الـ URL، رجّع للـ index
+  window.location.href = '../index.html';
+}
+
+async function doLogin() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const errEl    = document.getElementById('error-msg');
+  const btn      = document.getElementById('signin-btn');
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter username and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Signing in...';
+  btn.style.opacity = '0.7';
+  errEl.style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username, password, store })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      window.location.href = `dashboard.html?store=${store}`;
+    } else {
+      errEl.textContent = data.error || 'Login failed.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Sign in & view forecast';
+      btn.style.opacity = '1';
+    }
+  } catch (err) {
+    errEl.textContent = 'Cannot connect to server. Is Flask running?';
+    errEl.style.display = 'block';
+    btn.textContent = 'Sign in & view forecast';
+    btn.style.opacity = '1';
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
 </script>
 </body>
 </html>
