@@ -1,19 +1,54 @@
 from flask import Blueprint, jsonify, request
 from config.db import get_db
 from services.dashboard_service import get_day_columns
+from services.forecast_service import run_forecast
 
 forecast_bp = Blueprint("forecast", __name__)
 
 
+@forecast_bp.route("/run/<item_id>")
+def run(item_id):
+    """
+    GET /api/forecast/run/HOBBIES_1_003?store_id=CA_1&horizon=28
+    بيشغل الـ ML model ويرجع predictions
+    """
+    store_id = request.args.get("store_id")
+    horizon  = int(request.args.get("horizon", 28))
+
+    if not store_id:
+        return jsonify({"error": "store_id is required"}), 400
+
+    result = run_forecast(item_id, store_id, horizon)
+
+    if isinstance(result, dict) and "error" in result:
+        return jsonify(result), 404
+
+    # احفظ النتائج في DB
+    db  = get_db()
+    import datetime
+    db.forecasts.replace_one(
+        {"item_id": item_id, "store_id": store_id},
+        {
+            "item_id":     item_id,
+            "store_id":    store_id,
+            "predictions": result,
+            "created_at":  datetime.datetime.utcnow(),
+        },
+        upsert=True
+    )
+
+    return jsonify({
+        "item_id":     item_id,
+        "store_id":    store_id,
+        "horizon":     horizon,
+        "predictions": result,
+    })
+
+
 @forecast_bp.route("/input/<item_id>")
 def get_forecast_input(item_id):
-    """
-    GET /api/forecast/input/HOBBIES_1_003?store_id=CA_1
-   
-    """
     db       = get_db()
     store_id = request.args.get("store_id")
-
     day_cols = get_day_columns(365)
 
     cal_map = {
@@ -80,47 +115,29 @@ def get_forecast_input(item_id):
 
 @forecast_bp.route("/result", methods=["POST"])
 def save_forecast_result():
-    """
-    POST /api/forecast/result
-   
-
-    Body (JSON):
-    {
-      "item_id": "HOBBIES_1_003",
-      "store_id": "CA_1",
-      "predictions": [
-        {"date": "2016-06-20", "forecast": 3.5},
-        ...
-      ]
-    }
-    """
     db   = get_db()
     body = request.get_json()
 
     if not body or "item_id" not in body or "predictions" not in body:
         return jsonify({"error": "item_id and predictions are required"}), 400
 
+    import datetime
     doc = {
         "item_id":     body["item_id"],
         "store_id":    body.get("store_id"),
         "predictions": body["predictions"],
-        "created_at":  __import__("datetime").datetime.utcnow(),
+        "created_at":  datetime.datetime.utcnow(),
     }
     result = db.forecasts.replace_one(
         {"item_id": body["item_id"], "store_id": body.get("store_id")},
         doc,
         upsert=True
     )
-
     return jsonify({"status": "saved", "upserted": result.upserted_id is not None})
 
 
 @forecast_bp.route("/result/<item_id>")
 def get_forecast_result(item_id):
-    """
-    GET /api/forecast/result/HOBBIES_1_003?store_id=CA_1
-   
-    """
     db       = get_db()
     store_id = request.args.get("store_id")
 
@@ -136,3 +153,19 @@ def get_forecast_result(item_id):
         doc["created_at"] = doc["created_at"].isoformat()
 
     return jsonify(doc)
+# ضيف الـ import ده فوق مع باقي الـ imports في ملف الـ routes:
+from services.forecast_service import run_forecast, get_last_available_date
+
+
+# وضيف الـ route ده في أي مكان جوه forecast_bp:
+@forecast_bp.route("/last-date")
+def last_date():
+    """
+    بيرجع آخر تاريخ متاح في الـ dataset.
+    الفرونت إند بيستخدمه كـ 'النهارده' عشان يحسب الـ horizon صح،
+    لأن الداتا (M5) تاريخها 2014-2016 مش تاريخ النهارده الحقيقي.
+    """
+    date = get_last_available_date()
+    if not date:
+        return jsonify({"error": "No calendar data found"}), 404
+    return jsonify({"last_date": date})

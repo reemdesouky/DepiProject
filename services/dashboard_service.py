@@ -1,6 +1,6 @@
 from config.db import get_db
 
-# mapping بين store (x/y/z) والـ state_id في الـ dataset
+
 STORE_STATE_MAP = {
     "x": "CA",
     "y": "TX",

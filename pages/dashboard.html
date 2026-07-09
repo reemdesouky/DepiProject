@@ -37,10 +37,10 @@
       <p class="dash-desc" id="dash-desc">Loading data...</p>
     </div>
     <div class="time-filters">
-      <button class="tf" onclick="setпериод('7d',this)">7d</button>
-      <button class="tf" onclick="setпериод('30d',this)">30d</button>
-      <button class="tf active" onclick="setпериод('90d',this)">90d</button>
-      <button class="tf" onclick="setпериод('1y',this)">1y</button>
+      <button class="tf" onclick="setPeriod('7d',this)">7d</button>
+      <button class="tf" onclick="setPeriod('30d',this)">30d</button>
+      <button class="tf active" onclick="setPeriod('90d',this)">90d</button>
+      <button class="tf" onclick="setPeriod('1y',this)">1y</button>
     </div>
   </div>
 
@@ -98,10 +98,65 @@
     </div>
   </div>
 
-  <!-- Table -->
+  <!-- ML Forecast Section -->
+  <div class="table-panel" style="margin-bottom:18px">
+    <div class="table-header">
+      <div class="panel-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        ML Demand Forecast
+      </div>
+    </div>
+    <div class="table-sub" style="margin-bottom:16px">Run the LightGBM model to forecast demand for a specific item</div>
+
+    <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap">
+      <div class="form-group" style="margin:0;flex:1;min-width:160px">
+        <label class="form-label">Item ID</label>
+        <input type="text" id="fc-item-id" class="form-input" placeholder="e.g. HOBBIES_1_001" style="padding-left:12px">
+      </div>
+      <div class="form-group" style="margin:0;flex:1;min-width:160px">
+        <label class="form-label">Store ID</label>
+        <input type="text" id="fc-store-id" class="form-input" placeholder="e.g. CA_1" style="padding-left:12px">
+      </div>
+      <div class="form-group" style="margin:0;min-width:120px">
+        <label class="form-label">Horizon (days)</label>
+        <input type="number" id="fc-horizon" class="form-input" value="28" min="1" max="90" style="padding-left:12px" oninput="onHorizonChange()">
+      </div>
+      <div class="form-group" style="margin:0;min-width:160px">
+        <label class="form-label">Forecast until</label>
+        <input type="date" id="fc-target-date" class="form-input" style="padding-left:12px" onchange="onTargetDateChange()">
+        <div id="fc-date-confirm" style="font-size:11px;color:#6b7280;margin-top:4px"></div>
+      </div>
+      <button class="btn-primary-nav" id="fc-btn" onclick="runForecast()" style="padding:9px 20px;font-size:13px;height:38px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Run Forecast
+      </button>
+    </div>
+
+    <div id="fc-status" style="display:none;font-size:13px;margin-bottom:12px;padding:8px 12px;border-radius:8px"></div>
+
+    <div id="fc-chart-wrap" style="display:none">
+      <div style="display:flex;gap:16px;align-items:center;margin-bottom:12px">
+        <div class="legend">
+          <span><i class="dot" style="background:#93c5fd"></i>Forecast</span>
+        </div>
+        <span id="fc-chart-sub" style="font-size:11px;color:#888"></span>
+      </div>
+      <div style="position:relative;height:220px">
+        <canvas id="forecastChart"></canvas>
+      </div>
+      <div style="margin-top:16px;max-height:220px;overflow-y:auto">
+        <table>
+          <thead><tr><th>Date</th><th class="right">Forecast (units)</th></tr></thead>
+          <tbody id="fc-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKU Table -->
   <div class="table-panel">
     <div class="table-header">
-      <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> SKU forecast breakdown</div>
+      <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> SKU Breakdown</div>
       <a href="#" class="view-all-link">View all →</a>
     </div>
     <div class="table-sub">Top items ranked by units sold</div>
@@ -111,10 +166,11 @@
           <th>Item ID</th>
           <th>Product</th>
           <th class="right">Units Sold (30d)</th>
+          <th class="right">Action</th>
         </tr>
       </thead>
       <tbody id="sku-table-body">
-        <tr><td colspan="3" style="color:#aaa;text-align:center;padding:20px">Loading...</td></tr>
+        <tr><td colspan="4" style="color:#aaa;text-align:center;padding:20px">Loading...</td></tr>
       </tbody>
     </table>
   </div>
@@ -125,35 +181,33 @@ const API    = 'http://localhost:5000/api';
 const params = new URLSearchParams(location.search);
 const store  = params.get('store') || '';
 const names  = { x: 'Store X — California', y: 'Store Y — Texas', z: 'Store Z — Wisconsin' };
+const storeIds = { x: 'CA_1', y: 'TX_1', z: 'WI_1' };
 
 let currentPeriod = '90d';
 let demandChart   = null;
+let forecastChart = null;
 
-// عرض اسم الـ store
 if (store && names[store]) {
   document.getElementById('nav-store-name').textContent = names[store];
   document.getElementById('dash-title').textContent     = `${names[store]} — Forecast Overview`;
+  document.getElementById('fc-store-id').value = storeIds[store] || '';
 } else {
-  window.location.href = '../index.html';
+  window.location.href = '../pages/index.html';
 }
 
-function goBack() {
-  window.location.href = '../index.html';
-}
+function goBack() { window.location.href = '../pages/index.html'; }
 
-function setпериод(period, btn) {
+function setPeriod(period, btn) {
   document.querySelectorAll('.tf').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   currentPeriod = period;
   loadTrend();
 }
 
-// ── Summary ──
 async function loadSummary() {
   try {
     const res  = await fetch(`${API}/dashboard/summary?store=${store}`, { credentials: 'include' });
     const data = await res.json();
-
     document.getElementById('m-units').textContent   = data.total_units_sold?.toLocaleString() ?? '—';
     document.getElementById('m-revenue').textContent = data.total_revenue ? '$' + data.total_revenue.toLocaleString() : '—';
     document.getElementById('m-stores').textContent  = data.num_stores ?? '—';
@@ -164,7 +218,6 @@ async function loadSummary() {
   }
 }
 
-// ── Trend Chart ──
 async function loadTrend() {
   document.getElementById('chart-sub').textContent = 'Loading...';
   try {
@@ -172,86 +225,183 @@ async function loadTrend() {
     const data   = await res.json();
     const labels = data.map(d => d.date);
     const values = data.map(d => d.actual);
-
     document.getElementById('chart-sub').textContent = `${data.length} days of sales data`;
-
     if (demandChart) demandChart.destroy();
     demandChart = new Chart(document.getElementById('demandChart'), {
       type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label:            'Actual',
-          data:             values,
-          borderColor:      '#1d4ed8',
-          borderWidth:      2,
-          pointRadius:      data.length > 90 ? 0 : 3,
-          pointBackgroundColor: '#1d4ed8',
-          tension:          0.4,
-          fill:             true,
-          backgroundColor:  'rgba(37,99,235,0.07)',
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, maxTicksLimit: 10 } },
-          y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } }
-        }
-      }
+      data: { labels, datasets: [{ label: 'Actual', data: values, borderColor: '#1d4ed8', borderWidth: 2, pointRadius: data.length > 90 ? 0 : 3, pointBackgroundColor: '#1d4ed8', tension: 0.4, fill: true, backgroundColor: 'rgba(37,99,235,0.07)' }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, maxTicksLimit: 10 } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } } } }
     });
   } catch (e) {
     document.getElementById('chart-sub').textContent = 'Failed to load chart.';
   }
 }
 
-// ── Top Products ──
 async function loadTopProducts() {
   try {
     const res  = await fetch(`${API}/dashboard/top-products?limit=5&store=${store}`, { credentials: 'include' });
     const data = await res.json();
     const max  = data[0]?.total_sold || 1;
-
     const html = data.map(p => `
       <div class="alert-item">
         <div class="alert-top">
-          <div>
-            <div class="alert-name">${p.product_name || p.item_id}</div>
-            <div class="alert-sku">${p.item_id}</div>
-          </div>
+          <div><div class="alert-name">${p.product_name || p.item_id}</div><div class="alert-sku">${p.item_id}</div></div>
           <span class="badge-healthy">${p.total_sold?.toLocaleString()} units</span>
         </div>
-        <div class="prog-bar">
-          <div class="prog-fill" style="width:${Math.round((p.total_sold / max) * 100)}%"></div>
-        </div>
-      </div>
-    `).join('');
-
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.round((p.total_sold / max) * 100)}%"></div></div>
+      </div>`).join('');
     document.getElementById('top-products-list').innerHTML = html || '<div style="color:#aaa;font-size:13px">No data</div>';
   } catch (e) {
     document.getElementById('top-products-list').innerHTML = '<div style="color:#dc2626;font-size:13px">Failed to load.</div>';
   }
 }
 
-// ── SKU Table ──
 async function loadSkuTable() {
   try {
     const res  = await fetch(`${API}/dashboard/top-products?limit=10&store=${store}`, { credentials: 'include' });
     const data = await res.json();
-
     const rows = data.map(p => `
       <tr>
         <td class="sku-code">${p.item_id}</td>
         <td class="prod-name">${p.product_name || '—'}</td>
         <td class="right">${p.total_sold?.toLocaleString()}</td>
-      </tr>
-    `).join('');
-
-    document.getElementById('sku-table-body').innerHTML = rows || '<tr><td colspan="3" style="color:#aaa;text-align:center">No data</td></tr>';
+        <td class="right">
+          <button onclick="quickForecast('${p.item_id}')" style="font-size:11px;padding:3px 10px;border:0.5px solid #2563eb;border-radius:6px;background:#eff6ff;color:#2563eb;cursor:pointer">
+            Forecast →
+          </button>
+        </td>
+      </tr>`).join('');
+    document.getElementById('sku-table-body').innerHTML = rows || '<tr><td colspan="4" style="color:#aaa;text-align:center">No data</td></tr>';
   } catch (e) {
-    document.getElementById('sku-table-body').innerHTML = '<tr><td colspan="3" style="color:#dc2626;text-align:center">Failed to load.</td></tr>';
+    document.getElementById('sku-table-body').innerHTML = '<tr><td colspan="4" style="color:#dc2626;text-align:center">Failed to load.</td></tr>';
+  }
+}
+
+// آخر تاريخ متاح في الـ dataset - بنجيبه من الباك إند بدل ما نعتمد على تاريخ الجهاز
+// لأن الداتا (M5) تاريخها 2014-2016 مش تاريخ النهارده الحقيقي
+let datasetLastDate = null;
+
+async function loadDatasetLastDate() {
+  try {
+    const res  = await fetch(`${API}/forecast/last-date`, { credentials: 'include' });
+    const data = await res.json();
+    if (data.last_date) {
+      datasetLastDate = new Date(data.last_date + 'T00:00:00');
+    }
+  } catch (e) {
+    console.warn('Could not load dataset last date, falling back to today.', e);
+  }
+  onHorizonChange(); // نملأ حقل التاريخ الافتراضي بمجرد ما نعرف نقطة البداية
+}
+
+// بيحسب فرق الأيام بين آخر تاريخ في الداتا والتاريخ اللي المستخدم اختاره
+// وبيحدّث حقل الـ Horizon بيه تلقائي
+function onTargetDateChange() {
+  const dateInput = document.getElementById('fc-target-date');
+  const horizonInput = document.getElementById('fc-horizon');
+  const confirmEl = document.getElementById('fc-date-confirm');
+
+  if (!dateInput.value) {
+    confirmEl.textContent = 'No valid date selected yet — check the picker.';
+    confirmEl.style.color = '#dc2626';
+    return;
+  }
+
+  const base = datasetLastDate || (() => { const t = new Date(); t.setHours(0,0,0,0); return t; })();
+  const target = new Date(dateInput.value + 'T00:00:00');
+
+  const diffDays = Math.round((target - base) / (1000 * 60 * 60 * 24));
+
+  // بنعرض دايمًا إيه القيمة اللي المتصفح فهمها فعلًا (مفيدة لو حصل لخبطة يوم/شهر)
+  confirmEl.textContent = `Reading this as: ${dateInput.value} (${diffDays >= 0 ? '+' : ''}${diffDays} days from ${base.toISOString().slice(0,10)})`;
+  confirmEl.style.color = '#6b7280';
+
+  if (diffDays < 1) {
+    document.getElementById('fc-status').textContent =
+      `The date must be after ${base.toISOString().slice(0,10)} (last available date in the dataset).`;
+    document.getElementById('fc-status').style.cssText = 'display:block;background:#fef2f2;color:#dc2626;border:0.5px solid #fecaca';
+    return;
+  }
+
+  // مسح أي رسالة خطأ قديمة بمجرد ما التاريخ يبقى صحيح
+  document.getElementById('fc-status').style.display = 'none';
+  horizonInput.value = diffDays;
+}
+
+// لو المستخدم كتب في الـ Horizon يدويًا، بنحدّث حقل التاريخ عشان يفضلوا متزامنين
+function onHorizonChange() {
+  const horizonInput = document.getElementById('fc-horizon');
+  const dateInput = document.getElementById('fc-target-date');
+  const horizon = parseInt(horizonInput.value, 10);
+  if (!horizon || horizon < 1) return;
+
+  const base = datasetLastDate || (() => { const t = new Date(); t.setHours(0,0,0,0); return t; })();
+  const target = new Date(base);
+  target.setDate(target.getDate() + horizon);
+
+  dateInput.value = target.toISOString().slice(0, 10);
+}
+
+function quickForecast(itemId) {
+  document.getElementById('fc-item-id').value = itemId;
+  document.getElementById('fc-chart-wrap').closest('.table-panel').scrollIntoView({ behavior: 'smooth' });
+  runForecast();
+}
+
+async function runForecast() {
+  const itemId   = document.getElementById('fc-item-id').value.trim();
+  const storeId  = document.getElementById('fc-store-id').value.trim();
+  const horizon  = document.getElementById('fc-horizon').value || 28;
+  const statusEl = document.getElementById('fc-status');
+  const btn      = document.getElementById('fc-btn');
+
+  if (!itemId || !storeId) {
+    statusEl.textContent = 'Please enter Item ID and Store ID.';
+    statusEl.style.cssText = 'display:block;background:#fef2f2;color:#dc2626;border:0.5px solid #fecaca';
+    return;
+  }
+
+  btn.textContent = 'Running...';
+  btn.style.opacity = '0.7';
+  statusEl.textContent = `Running forecast for ${itemId} · ${storeId}...`;
+  statusEl.style.cssText = 'display:block;background:#eff6ff;color:#2563eb;border:0.5px solid #bfdbfe';
+  document.getElementById('fc-chart-wrap').style.display = 'none';
+
+  try {
+    const res  = await fetch(`${API}/forecast/run/${itemId}?store_id=${storeId}&horizon=${horizon}`, { credentials: 'include' });
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      statusEl.textContent = data.error || 'Forecast failed.';
+      statusEl.style.cssText = 'display:block;background:#fef2f2;color:#dc2626;border:0.5px solid #fecaca';
+      return;
+    }
+
+    const preds  = data.predictions;
+    const labels = preds.map(p => p.date);
+    const values = preds.map(p => p.forecast);
+    const total  = values.reduce((a, b) => a + b, 0).toFixed(1);
+
+    statusEl.textContent = `✓ Done — ${preds.length} days · Total: ${parseFloat(total).toLocaleString()} units`;
+    statusEl.style.cssText = 'display:block;background:#f0fdf4;color:#16a34a;border:0.5px solid #bbf7d0';
+    document.getElementById('fc-chart-sub').textContent = `${itemId} · ${storeId} · next ${preds.length} days`;
+    document.getElementById('fc-chart-wrap').style.display = 'block';
+
+    if (forecastChart) forecastChart.destroy();
+    forecastChart = new Chart(document.getElementById('forecastChart'), {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'Forecast', data: values, borderColor: '#2563eb', borderWidth: 2, pointRadius: preds.length > 30 ? 0 : 3, tension: 0.4, fill: true, backgroundColor: 'rgba(147,197,253,0.15)', borderDash: [5,4] }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, maxTicksLimit: 10 } }, y: { min: 0, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } } } }
+    });
+
+    document.getElementById('fc-table-body').innerHTML = preds.map(p => `<tr><td>${p.date}</td><td class="right">${p.forecast}</td></tr>`).join('');
+
+  } catch (e) {
+    statusEl.textContent = 'Cannot connect to server.';
+    statusEl.style.cssText = 'display:block;background:#fef2f2;color:#dc2626;border:0.5px solid #fecaca';
+  } finally {
+    btn.textContent = 'Run Forecast';
+    btn.style.opacity = '1';
   }
 }
 
@@ -259,14 +409,10 @@ async function loadAll() {
   await Promise.all([loadSummary(), loadTrend(), loadTopProducts(), loadSkuTable()]);
 }
 
-// تحقق من الـ session أولاً
 async function init() {
   try {
     const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
-    if (!res.ok) {
-      window.location.href = `login.html?store=${store}`;
-      return;
-    }
+    if (!res.ok) { window.location.href = `login.html?store=${store}`; return; }
     loadAll();
   } catch {
     window.location.href = `login.html?store=${store}`;
@@ -274,6 +420,7 @@ async function init() {
 }
 
 init();
+loadDatasetLastDate(); // بيجيب آخر تاريخ في الداتا ويظبط حقل التاريخ بناءً عليه
 </script>
 </body>
 </html>
