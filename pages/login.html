@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="login-page">
-  <a href="../index.html" class="back-link">← Back to stores</a>
+  <a href="../pages/index.html" class="back-link">← Back to stores</a>
   <div class="login-card">
     <div class="login-store-header">
       <div class="store-icon-sm">
@@ -55,7 +55,7 @@ if (store && names[store]) {
   document.getElementById('storeName').textContent = names[store];
 } else {
   // لو مفيش store في الـ URL، رجّع للـ index
-  window.location.href = '../index.html';
+  window.location.href = '../pages/index.html';
 }
 
 async function doLogin() {

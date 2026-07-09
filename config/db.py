@@ -10,7 +10,7 @@ db     = None
 def init_db(app=None):
     global client, db
     uri    = os.getenv("MONGO_URI")
-    client = MongoClient(uri)
+    client = MongoClient(uri, tls=True, tlsAllowInvalidCertificates=True)
     db     = client.get_default_database()
     print(f"Connected to MongoDB: {db.name}")
 
